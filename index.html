@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Meine Einkaufsliste</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 400px;
+    margin: 2rem auto;
+    padding: 1rem;
+    background: #f9f9f9;
+  }
+  h1 {
+    text-align: center;
+  }
+  form {
+    display: flex;
+    margin-bottom: 1rem;
+  }
+  input[type="text"] {
+    flex: 1;
+    padding: 0.5rem;
+    font-size: 1rem;
+  }
+  button {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    margin-left: 0.5rem;
+    cursor: pointer;
+  }
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  li {
+    background: white;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  li.editing input[type="text"] {
+    flex-grow: 1;
+    margin-right: 0.5rem;
+  }
+  .actions button {
+    margin-left: 0.25rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>Meine Einkaufsliste</h1>
+
+<form id="todo-form">
+  <input type="text" id="new-item" placeholder="Neues Produkt hinzufügen..." required />
+  <button type="submit">Hinzufügen</button>
+</form>
+
+<ul id="todo-list"></ul>
+
+<script>
+  // LocalStorage-Key
+  const STORAGE_KEY = "einkaufsliste";
+
+  // Elemente
+  const form = document.getElementById("todo-form");
+  const input = document.getElementById("new-item");
+  const list = document.getElementById("todo-list");
+
+  // Items laden oder initialisieren
+  let items = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+  // Render Funktion
+  function render() {
+    list.innerHTML = "";
+    items.forEach((item, index) => {
+      const li = document.createElement("li");
+
+      if (item.editing) {
+        // Editierbarer Zustand
+        const inputEdit = document.createElement("input");
+        inputEdit.type = "text";
+        inputEdit.value = item.text;
+        inputEdit.addEventListener("keyup", (e) => {
+          if (e.key === "Enter") {
+            finishEditing(index, inputEdit.value);
+          }
+          if (e.key === "Escape") {
+            cancelEditing(index);
+          }
+        });
+
+        const saveBtn = document.createElement("button");
+        saveBtn.textContent = "Speichern";
+        saveBtn.addEventListener("click", () => finishEditing(index, inputEdit.value));
+
+        const cancelBtn = document.createElement("button");
+        cancelBtn.textContent = "Abbrechen";
+        cancelBtn.addEventListener("click", () => cancelEditing(index));
+
+        li.classList.add("editing");
+        li.appendChild(inputEdit);
+        li.appendChild(saveBtn);
+        li.appendChild(cancelBtn);
+      } else {
+        // Normaler Zustand
+        li.textContent = item.text;
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "Bearbeiten";
+        editBtn.addEventListener("click", () => startEditing(index));
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Löschen";
+        deleteBtn.addEventListener("click", () => deleteItem(index));
+
+        actions.appendChild(editBtn);
+        actions.appendChild(deleteBtn);
+        li.appendChild(actions);
+      }
+      list.appendChild(li);
+    });
+  }
+
+  // Neue Item hinzufügen
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (text) {
+      items.push({ text, editing: false });
+      saveAndRender();
+      input.value = "";
+      input.focus();
+    }
+  });
+
+  // Bearbeiten starten
+  function startEditing(index) {
+    items[index].editing = true;
+    saveAndRender();
+  }
+
+  // Bearbeitung abschließen
+  function finishEditing(index, newText) {
+    if (newText.trim() === "") {
+      alert("Das Feld darf nicht leer sein.");
+      return;
+    }
+    items[index].text = newText.trim();
+    items[index].editing = false;
+    saveAndRender();
+  }
+
+  // Bearbeitung abbrechen
+  function cancelEditing(index) {
+    items[index].editing = false;
+    saveAndRender();
+  }
+
+  // Item löschen
+  function deleteItem(index) {
+    if (confirm("Willst du dieses Item wirklich löschen?")) {
+      items.splice(index, 1);
+      saveAndRender();
+    }
+  }
+
+  // Speichern & Rendern
+  function saveAndRender() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    render();
+  }
+
+  // Initiales Rendern
+  render();
+</script>
+
+</body>
+</html>
