@@ -8,7 +8,7 @@ Eine minimalistische, schnelle **Einkaufsliste im Browser**: Produkte hinzufüge
 
 So sieht die App mit Beispiel-Daten aus (inkl. aktivem Bearbeiten-Modus):
 
-![Screenshot: Einkaufsliste](preview.png)
+![Screenshot: Einkaufsliste](Preview.png)
 
 ## Features
 
